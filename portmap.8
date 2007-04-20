@@ -33,7 +33,7 @@
 .\"     from: @(#)portmap.8	5.3 (Berkeley) 3/16/91
 .\"	$Id: portmap.8,v 1.2 2004/04/03 09:30:21 herbert Exp $
 .\"
-.Dd March 16, 1991
+.Dd Apr 20, 2007
 .Dt PORTMAP 8
 .Os BSD 4.3
 .Sh NAME
@@ -50,6 +50,7 @@ program number mapper
 .Op Fl t Ar dir
 .Op Fl v
 .Op Fl i Ar address
+.Op Fl l
 .Sh DESCRIPTION
 .Nm Portmap
 is a server that converts
@@ -106,14 +107,14 @@ from running as a daemon,
 and causes log messages
 to be printed to the standard error output.
 .It Fl t Ar dir
-(chroot) tell 
-.Nm portmap 
-to 
+(chroot) tell
+.Nm portmap
+to
 .Xr chroot 2
-into 
+into
 .Ar dir .
-.Ar dir 
-should be empty, not writeable by the daemon user, and preferably on a 
+.Ar dir
+should be empty, not writeable by the daemon user, and preferably on a
 filesystem mounted read-only, noexec, nodev, and nosuid.
 .It Fl v
 (verbose) run
@@ -122,7 +123,13 @@ in verbose mode.
 .It Fl i Ar address
 bind
 .Nm portmap
-to address. If you specify 127.0.0.1 it will bind to the loopback interface only.
+to address. If you specify 127.0.0.1 it will bind to the loopback
+interface only.
+.It Fl l
+bind
+.Nm portmap
+to the loop-back address 127.0.0.1.  This is a shorthand for
+specifying 127.0.0.1 with -i.
 .El
 
 This
@@ -136,35 +143,35 @@ the network 192.168. you could use the following line in /etc/hosts.allow:
 
 portmap: 192.168.
 
-In order to avoid deadlocks, the 
+In order to avoid deadlocks, the
 .Nm portmap
 program does not attempt to look up the remote host name or user name, nor will
 it try to match NIS netgroups. As a consequence only network number patterns
 (or IP addresses) will work for portmap access control, do not use hostnames.
 Notice that localhost will always be allowed access to the portmapper.
 
-You have to use the daemon name 
+You have to use the daemon name
 .Nm portmap
 for the daemon name (even if the binary has a different name). For the
 client names you can only use the keyword ALL or IP addresses (NOT
 host or domain names).
 
 For further information please have a look at the
-.Xr tcpd (8) ,
-.Xr hosts_allow (5)
+.Xr tcpd 8 ,
+.Xr hosts_allow 5
 and
-.Xr hosts_access (5)
+.Xr hosts_access 5
 manual pages.
 
 .Sh SEE ALSO
-.Xr inetd.conf (5) ,
-.Xr rpcinfo (8) ,
-.Xr pmap_set (8) ,
-.Xr pmap_dump (8) ,
-.Xr inetd (8) ,
-.Xr tcpd (8) ,
-.Xr hosts_access (5) ,
-.Xr hosts_options (5)
+.Xr inetd.conf 5 ,
+.Xr rpcinfo 8 ,
+.Xr pmap_set 8 ,
+.Xr pmap_dump 8 ,
+.Xr inetd 8 ,
+.Xr tcpd 8 ,
+.Xr hosts_access 5 ,
+.Xr hosts_options 5
 .Sh BUGS
 If
 .Nm portmap
@@ -173,7 +180,7 @@ crashes, all rpc servers must be restarted.
 The
 .Nm
 command appeared in
-.Bx BSD 4.3
+.Bx 4.3
 .Sh AUTHORS
 This
 manual page was changed by
