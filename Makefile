@@ -116,15 +116,12 @@ pmap_set: pmap_set.c
 from_local: from_local.c
 	cc $(CFLAGS) -DTEST -o $@ from_local.c
 
-get_myaddress: get_myaddress.c
-	cc $(CFLAGS) -DTEST -o $@ get_myaddress.c $(LIBS)
-
 lint:	
 	lint $(COPT) $(OBJECTS:%.o=%.c)
 
 clean:
-	rm -f *.o portmap pmap_dump pmap_set from_local get_myaddress \
-	    get_myaddress.so core
+	rm -f *.o portmap pmap_dump pmap_set from_local \
+	    core
 
 tidy:	clean
 	chmod 755 . ; chmod -R a+r .
@@ -133,7 +130,6 @@ deps:
 	@$(CC) -M $(CFLAGS) *.c | grep -v /usr/include |sed 's/\.\///'
 
 from_local.o: from_local.c
-get_myaddress.o: get_myaddress.c
 pmap_check.o: pmap_check.c
 pmap_check.o: pmap_check.h Makefile
 pmap_dump.o: pmap_dump.c

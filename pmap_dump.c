@@ -31,7 +31,10 @@ main(int argc, char **argv)
     register struct pmaplist *list;
     register struct rpcent *rpc;
 
-    get_myaddress(&addr);
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(PMAPPORT);
 
     for (list = pmap_getmaps(&addr); list; list = list->pml_next) {
 	rpc = getrpcbynumber((int) list->pml_map.pm_prog);
