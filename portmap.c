@@ -83,14 +83,17 @@ static char sccsid[] = "@(#)portmap.c 1.32 87/08/06 Copyr 1984 Sun Micro";
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <syslog.h>
 #include <netdb.h>
+#include <errno.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <sys/signal.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/types.h>
 #ifdef SYSV40
 #include <netinet/in.h>
 #endif
