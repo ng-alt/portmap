@@ -228,7 +228,7 @@ main(int argc, char **argv)
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof on);
 #endif
 	if (bind(sock, (struct sockaddr *)&addr, len) != 0) {
-		syslog(LOG_ERR, "cannot bind udp: %m");
+		syslog(LOG_ERR, "cannot bind tcp: %m");
 		exit(1);
 	}
 	if ((xprt = svctcp_create(sock, RPCSMALLMSGSIZE, RPCSMALLMSGSIZE))
