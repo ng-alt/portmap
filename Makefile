@@ -71,7 +71,7 @@ CHECK_PORT = -DCHECK_PORT
 # With verbose logging on, HP-UX 9.x and AIX 4.1 leave zombies behind when
 # SIGCHLD is not ignored. Enable next macro for a fix.
 #
-# ZOMBIES = -DIGNORE_SIGCHLD	# AIX 4.x, HP-UX 9.x
+ZOMBIES = -DIGNORE_SIGCHLD	# AIX 4.x, HP-UX 9.x
 
 # Uncomment the following macro if your system does not have u_long.
 #

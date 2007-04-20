@@ -123,7 +123,9 @@ static char sccsid[] = "@(#)portmap.c 1.32 87/08/06 Copyr 1984 Sun Micro";
 #endif
 
 static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt);
+#ifndef IGNORE_SIGCHLD			/* Lionel Cons <cons@dxcern.cern.ch> */
 static void reap(int);
+#endif
 static void callit(struct svc_req *rqstp, SVCXPRT *xprt);
 struct pmaplist *pmaplist;
 int debugging = 0;
@@ -287,6 +289,7 @@ main(int argc, char **argv)
 #else
 	(void)signal(SIGCHLD, reap);
 #endif
+	(void)signal(SIGPIPE, SIG_IGN);
 	svc_run();
 	syslog(LOG_ERR, "run_svc returned unexpectedly");
 	abort();
@@ -671,9 +674,11 @@ static void callit(struct svc_req *rqstp, SVCXPRT *xprt)
 	exit(0);
 }
 
+#ifndef IGNORE_SIGCHLD			/* Lionel Cons <cons@dxcern.cern.ch> */
 static void reap(int ignore)
 {
 	int save_errno = errno;
 	while (wait3((int *)NULL, WNOHANG, (struct rusage *)NULL) > 0);
 	errno = save_errno;
 }
+#endif
