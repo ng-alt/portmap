@@ -183,11 +183,11 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-#ifdef LOG_MAIL
-	openlog("portmap", debugging ? LOG_PID | LOG_PERROR : LOG_PID,
+#ifdef LOG_DAEMON
+	openlog("portmap", LOG_PID|LOG_NDELAY | ( debugging ? LOG_PERROR : 0),
 	    FACILITY);
 #else
-	openlog("portmap", debugging ? LOG_PID | LOG_PERROR : LOG_PID);
+	openlog("portmap", LOG_PID|LOG_NDELAY | ( debugging ? LOG_PERROR : 0));
 #endif
 
 	if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {

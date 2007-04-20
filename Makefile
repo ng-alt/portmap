@@ -8,7 +8,7 @@
 # if you disagree. See `man 3 syslog' for examples. Some syslog versions
 # do not provide this flexibility.
 #
-FACILITY=LOG_MAIL
+FACILITY=LOG_DAEMON
 
 # To disable tcp-wrapper style access control, comment out the following
 # macro definitions.  Access control can also be turned off by providing
