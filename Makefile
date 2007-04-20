@@ -99,13 +99,14 @@ SHELL	= /bin/sh
 COPT	= $(CONST) $(HOSTS_ACCESS) $(CHECK_PORT) \
 	$(SYS) -DFACILITY=$(FACILITY) $(ULONG) $(ZOMBIES) $(SA_LEN) \
 	$(LOOPBACK) $(SETPGRP)
-CFLAGS	= $(COPT) -O $(NSARCHS) -Wall -Wstrict-prototypes
+CFLAGS	= $(COPT) -O $(NSARCHS) -Wall -Wstrict-prototypes \
+	-fpie
 OBJECTS	= portmap.o pmap_check.o from_local.o
 
 all:	portmap pmap_dump pmap_set
 
 portmap: $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(WRAP_LIB) $(LIBS)
+	$(CC) $(CFLAGS) -pie -o $@ $(OBJECTS) $(WRAP_LIB) $(LIBS)
 
 pmap_dump: pmap_dump.c
 	$(CC) $(CFLAGS) -o $@ $? $(LIBS)

@@ -67,9 +67,9 @@ sccsid[] = "@(#) pmap_check.c 1.8 96/07/07 10:49:10";
 static void logit(int severity, struct sockaddr_in *addr,
 		  u_long procnum, u_long prognum, char *text);
 static void toggle_verboselog(int sig);
-int     verboselog = 0;
-int     allow_severity = LOG_INFO;
-int     deny_severity = LOG_WARNING;
+int     verboselog __attribute ((visibility ("hidden"))) = 0;
+int     allow_severity __attribute ((visibility ("hidden"))) = LOG_INFO;
+int     deny_severity __attribute ((visibility ("hidden"))) = LOG_WARNING;
 
 /* A handful of macros for "readability". */
 

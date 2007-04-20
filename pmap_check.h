@@ -18,9 +18,9 @@ extern int check_privileged_port(struct sockaddr_in *addr,
 				 u_long  prog, u_long  port);
 extern int check_callit(struct sockaddr_in *addr, u_long  proc,
 			u_long  prog, u_long  aproc);
-extern int verboselog;
-extern int allow_severity;
-extern int deny_severity;
+extern int verboselog __attribute__ ((visibility ("hidden")));
+extern int allow_severity __attribute__ ((visibility ("hidden")));
+extern int deny_severity __attribute__ ((visibility ("hidden")));
 
 #ifdef LOOPBACK_SETUNSET
 #define CHECK_SETUNSET	check_setunset
