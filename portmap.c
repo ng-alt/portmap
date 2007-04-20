@@ -98,6 +98,7 @@ static char sccsid[] = "@(#)portmap.c 1.32 87/08/06 Copyr 1984 Sun Micro";
 #ifdef SYSV40
 #include <netinet/in.h>
 #endif
+#include <arpa/inet.h>
 
 #include <stdlib.h>
 
@@ -163,12 +164,15 @@ main(int argc, char **argv)
 	char *chroot_path = NULL;
 	struct in_addr bindaddr;
 	int have_bindaddr = 0;
+	int foreground = 0;
 
-	while ((c = getopt(argc, argv, "dlt:vi:")) != EOF) {
+	while ((c = getopt(argc, argv, "dflt:vi:")) != EOF) {
 		switch (c) {
 
 		case 'd':
 			debugging = 1;
+		case 'f':
+			foreground = 1;
 			break;
 
 		case 't':
@@ -187,27 +191,29 @@ main(int argc, char **argv)
 			break;
 		default:
 			fprintf(stderr,
-				"usage: %s [-dlv] [-t dir] [-i address]\n",
+				"usage: %s [-dflv] [-t dir] [-i address]\n",
 				argv[0]);
-			(void) fprintf(stderr, "-d: debugging mode\n");
-			(void) fprintf(stderr, "-t dir: chroot into dir\n");
-			(void) fprintf(stderr, "-v: verbose logging\n");
-			(void) fprintf(stderr, "-i address; bind to address\n");
-			(void) fprintf(stderr, "-l: same as -l 127.0.0.1\n");
+			fprintf(stderr, "-d: debugging mode\n");
+			fprintf(stderr,
+				"-f: don't daemonize, log to standard error\n");
+			fprintf(stderr, "-t dir: chroot into dir\n");
+			fprintf(stderr, "-v: verbose logging\n");
+			fprintf(stderr, "-i address; bind to address\n");
+			fprintf(stderr, "-l: same as -l 127.0.0.1\n");
 			exit(1);
 		}
 	}
 
-	if (!debugging && daemon(0, 0)) {
+	if (!foreground && daemon(0, 0)) {
 		(void) fprintf(stderr, "portmap: fork: %s", strerror(errno));
 		exit(1);
 	}
 
 #ifdef LOG_DAEMON
-	openlog("portmap", LOG_PID|LOG_NDELAY | ( debugging ? LOG_PERROR : 0),
+	openlog("portmap", LOG_PID|LOG_NDELAY | ( foreground ? LOG_PERROR : 0),
 	    FACILITY);
 #else
-	openlog("portmap", LOG_PID|LOG_NDELAY | ( debugging ? LOG_PERROR : 0));
+	openlog("portmap", LOG_PID|LOG_NDELAY | ( foreground ? LOG_PERROR : 0));
 #endif
 
 	if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
