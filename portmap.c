@@ -211,8 +211,8 @@ main(int argc, char **argv)
 				"-f: don't daemonize, log to standard error\n");
 			fprintf(stderr, "-t dir: chroot into dir\n");
 			fprintf(stderr, "-v: verbose logging\n");
-			fprintf(stderr, "-i address; bind to address\n");
-			fprintf(stderr, "-l: same as -l 127.0.0.1\n");
+			fprintf(stderr, "-i address: bind to address\n");
+			fprintf(stderr, "-l: same as -i 127.0.0.1\n");
 			exit(1);
 		}
 	}
