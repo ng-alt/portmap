@@ -99,14 +99,14 @@ AUX	= daemon.o strerror.o
 
 # Comment out if your compiler talks ANSI and understands const
 #
-CONST   = -Dconst=
+# CONST   = -Dconst=
 
 ### End of configurable stuff.
 ##############################
 
 SHELL	= /bin/sh
 
-COPT	= $(CONST) -Dperror=xperror $(HOSTS_ACCESS) $(CHECK_PORT) \
+COPT	= $(CONST) $(HOSTS_ACCESS) $(CHECK_PORT) \
 	$(SYS) -DFACILITY=$(FACILITY) $(ULONG) $(ZOMBIES) $(SA_LEN) \
 	$(LOOPBACK) $(SETPGRP)
 CFLAGS	= $(COPT) -O $(NSARCHS)

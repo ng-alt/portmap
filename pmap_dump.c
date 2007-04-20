@@ -42,7 +42,6 @@ char  **argv;
 	       list->pml_map.pm_port,
 	       rpc ? rpc->r_name : "");
     }
-#undef perror
     return (fclose(stdout) ? (perror(argv[0]), 1) : 0);
 }
 

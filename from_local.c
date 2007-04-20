@@ -39,10 +39,6 @@
 static char sccsid[] = "@(#) from_local.c 1.3 96/05/31 15:52:57";
 #endif
 
-#ifdef TEST
-#undef perror
-#endif
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdio.h>
