@@ -160,12 +160,17 @@ main(int argc, char **argv)
 	struct sockaddr_in addr;
 	int len = sizeof(struct sockaddr_in);
 	register struct pmaplist *pml;
+	char *chroot_path = NULL;
 
-	while ((c = getopt(argc, argv, "dv")) != EOF) {
+	while ((c = getopt(argc, argv, "dt:v")) != EOF) {
 		switch (c) {
 
 		case 'd':
 			debugging = 1;
+			break;
+
+		case 't':
+			chroot_path = optarg;
 			break;
 
 		case 'v':
@@ -173,8 +178,10 @@ main(int argc, char **argv)
 			break;
 
 		default:
-			(void) fprintf(stderr, "usage: %s [-dv]\n", argv[0]);
+			(void) fprintf(stderr, "usage: %s [-dv] [-t dir]\n",
+				       argv[0]);
 			(void) fprintf(stderr, "-d: debugging mode\n");
+			(void) fprintf(stderr, "-t dir: chroot into dir\n");
 			(void) fprintf(stderr, "-v: verbose logging\n");
 			exit(1);
 		}
@@ -283,6 +290,12 @@ main(int argc, char **argv)
 	(void)svc_register(xprt, PMAPPROG, PMAPVERS, reg_service, FALSE);
 
 	/* additional initializations */
+	if (chroot_path) {
+		if (chroot(chroot_path) < 0) {
+			syslog(LOG_ERR, "couldn't do chroot");
+			exit(1);
+		}
+	}
 	check_startup();
 #ifdef IGNORE_SIGCHLD			/* Lionel Cons <cons@dxcern.cern.ch> */
 	(void)signal(SIGCHLD, SIG_IGN);
