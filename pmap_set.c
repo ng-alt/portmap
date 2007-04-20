@@ -48,9 +48,9 @@ static int
 parse_line(char *buf, u_long *prog, u_long *vers,
 	   int *prot, unsigned *port)
 {
-    char    proto_name[BUFSIZ];
+    char    proto_name[256];
 
-    if (sscanf(buf, "%lu %lu %s %u", prog, vers, proto_name, port) != 4) {
+    if (sscanf(buf, "%lu %lu %255s %u", prog, vers, proto_name, port) != 4) {
 	return (0);
     }
     if (strcmp(proto_name, "tcp") == 0) {
