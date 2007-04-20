@@ -88,6 +88,7 @@ static char sccsid[] = "@(#)portmap.c 1.32 87/08/06 Copyr 1984 Sun Micro";
 #include <syslog.h>
 #include <netdb.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
@@ -126,6 +127,9 @@ static void reap(int);
 static void callit(struct svc_req *rqstp, SVCXPRT *xprt);
 struct pmaplist *pmaplist;
 int debugging = 0;
+int store_fd = -1;
+static void dump_table(void);
+static void load_table(void);
 
 #include "pmap_check.h"
 
@@ -322,6 +326,9 @@ main(int argc, char **argv)
 
 	(void)svc_register(xprt, PMAPPROG, PMAPVERS, reg_service, FALSE);
 
+	store_fd = open("/var/run/portmap_mapping", O_RDWR|O_CREAT, 0600);
+	load_table();
+
 	/* additional initializations */
 	if (chroot_path) {
 		if (chroot(chroot_path) < 0) {
@@ -448,6 +455,7 @@ static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt)
 					fnd->pml_next = pml;
 				}
 				ans = 1;
+				dump_table();
 			}
 		done:
 			if ((!svc_sendreply(xprt, (xdrproc_t)xdr_int,
@@ -504,6 +512,7 @@ static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt)
 				else
 					prevpml->pml_next = pml;
 				free(t);
+				dump_table();
 			}
 			if ((!svc_sendreply(xprt, (xdrproc_t)xdr_int,
 					    (caddr_t)&ans)) &&
@@ -742,3 +751,71 @@ static void reap(int ignore)
 	errno = save_errno;
 }
 #endif
+
+/* Dump and restore mapping table so that we can survive kill/restart.
+ * To cope with chroot, an fd is opened early and we just write to that.
+ * If we are killed while writing the file, we lose, but that isn't
+ * very likely...
+ */
+
+static void dump_table(void)
+{
+	FILE *f;
+	struct pmaplist *pml;
+
+	if (store_fd < 0)
+		return;
+	ftruncate(store_fd, 0);
+	lseek(store_fd, 0, 0);
+	f = fdopen(dup(store_fd), "w");
+	if (!f)
+		return;
+
+	for (pml = pmaplist ; pml ; pml = pml->pml_next) {
+		struct flagged_pml *fpml = (struct flagged_pml*)pml;
+
+		fprintf(f, "%lu %lu %lu %lu %d\n",
+			pml->pml_map.pm_prog,
+			pml->pml_map.pm_vers,
+			pml->pml_map.pm_prot,
+			pml->pml_map.pm_port,
+			fpml->priv);
+	}
+	fclose(f);
+}
+
+static void load_table(void)
+{
+	FILE *f;
+	struct pmaplist **ep;
+	struct flagged_pml fpml, *fpmlp;
+
+	ep = &pmaplist;
+	while ((*ep)->pml_next)
+		ep = & (*ep)->pml_next;
+
+	if (store_fd < 0)
+		return;
+	lseek(store_fd, 0, 0);
+	f = fdopen(dup(store_fd), "r");
+	if (f == NULL)
+		return;
+
+	while (fscanf(f, "%lu %lu %lu %lu %d\n",
+		      &fpml.pml.pml_map.pm_prog,
+		      &fpml.pml.pml_map.pm_vers,
+		      &fpml.pml.pml_map.pm_prot,
+		      &fpml.pml.pml_map.pm_port,
+		      &fpml.priv) == 5) {
+		if (fpml.pml.pml_map.pm_port == PMAPPORT)
+			continue;
+		fpmlp = malloc(sizeof(struct flagged_pml));
+		if (!fpmlp)
+			break;
+		*fpmlp = fpml;
+		*ep = &fpmlp->pml;
+		ep = &fpmlp->pml.pml_next;
+		*ep = NULL;
+	}
+	fclose(f);
+}

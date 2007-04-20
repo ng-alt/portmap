@@ -92,6 +92,12 @@ like any other daemon.
 then logs errors using
 .Xr syslog 3 .
 .Pp
+.Nm Portmap
+records all current mapping in the file
+.Nm /var/run/portmap_mapping
+so that if it gets killed and restarted, it can reload the mapping for
+currently active services.
+.Pp
 Options available:
 .Bl -tag -width Ds
 .It Fl d
@@ -172,10 +178,6 @@ manual pages.
 .Xr tcpd 8 ,
 .Xr hosts_access 5 ,
 .Xr hosts_options 5
-.Sh BUGS
-If
-.Nm portmap
-crashes, all rpc servers must be restarted.
 .Sh HISTORY
 The
 .Nm
