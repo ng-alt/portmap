@@ -346,7 +346,8 @@ reg_service(rqstp, xprt)
 		 */
 		/* remote host authorization check */
 		check_default(svc_getcaller(xprt), rqstp->rq_proc, (u_long) 0);
-		if (!svc_sendreply(xprt, xdr_void, (caddr_t)0) && debugging) {
+		if (!svc_sendreply(xprt, (xdrproc_t) xdr_void, (caddr_t)0)
+		    && debugging) {
 			abort();
 		}
 		break;
@@ -355,7 +356,7 @@ reg_service(rqstp, xprt)
 		/*
 		 * Set a program,version to port mapping
 		 */
-		if (!svc_getargs(xprt, xdr_pmap, &reg))
+		if (!svc_getargs(xprt, (xdrproc_t) xdr_pmap, (caddr_t)&reg))
 			svcerr_decode(xprt);
 		else {
 			/* reject non-local requests, protect priv. ports */
@@ -397,7 +398,8 @@ reg_service(rqstp, xprt)
 				ans = 1;
 			}
 		done:
-			if ((!svc_sendreply(xprt, xdr_int, (caddr_t)&ans)) &&
+			if ((!svc_sendreply(xprt, (xdrproc_t)xdr_int,
+					    (caddr_t)&ans)) &&
 			    debugging) {
 				(void) fprintf(stderr, "svc_sendreply\n");
 				abort();
@@ -409,7 +411,7 @@ reg_service(rqstp, xprt)
 		/*
 		 * Remove a program,version to port mapping.
 		 */
-		if (!svc_getargs(xprt, xdr_pmap, &reg))
+		if (!svc_getargs(xprt, (xdrproc_t)xdr_pmap, (caddr_t)&reg))
 			svcerr_decode(xprt);
 		else {
 			ans = 0;
@@ -443,7 +445,8 @@ reg_service(rqstp, xprt)
 					prevpml->pml_next = pml;
 				free(t);
 			}
-			if ((!svc_sendreply(xprt, xdr_int, (caddr_t)&ans)) &&
+			if ((!svc_sendreply(xprt, (xdrproc_t)xdr_int,
+					    (caddr_t)&ans)) &&
 			    debugging) {
 				(void) fprintf(stderr, "svc_sendreply\n");
 				abort();
@@ -455,7 +458,7 @@ reg_service(rqstp, xprt)
 		/*
 		 * Lookup the mapping for a program,version and return its port
 		 */
-		if (!svc_getargs(xprt, xdr_pmap, &reg))
+		if (!svc_getargs(xprt, (xdrproc_t)xdr_pmap, (caddr_t)&reg))
 			svcerr_decode(xprt);
 		else {
 			/* remote host authorization check */
@@ -470,7 +473,8 @@ reg_service(rqstp, xprt)
 				port = fnd->pml_map.pm_port;
 			else
 				port = 0;
-			if ((!svc_sendreply(xprt, xdr_int, (caddr_t)&port)) &&
+			if ((!svc_sendreply(xprt, (xdrproc_t)xdr_int,
+					    (caddr_t)&port)) &&
 			    debugging) {
 				(void) fprintf(stderr, "svc_sendreply\n");
 				abort();
@@ -482,7 +486,7 @@ reg_service(rqstp, xprt)
 		/*
 		 * Return the current set of mapped program,version
 		 */
-		if (!svc_getargs(xprt, xdr_void, NULL))
+		if (!svc_getargs(xprt, (xdrproc_t)xdr_void, NULL))
 			svcerr_decode(xprt);
 		else {
 			/* remote host authorization check */
@@ -493,7 +497,7 @@ reg_service(rqstp, xprt)
 			} else {
 				p = pmaplist;
 			}
-			if ((!svc_sendreply(xprt, xdr_pmaplist,
+			if ((!svc_sendreply(xprt, (xdrproc_t)xdr_pmaplist,
 			    (caddr_t)&p)) && debugging) {
 				(void) fprintf(stderr, "svc_sendreply\n");
 				abort();
@@ -641,7 +645,7 @@ callit(rqstp, xprt)
 	timeout.tv_sec = 5;
 	timeout.tv_usec = 0;
 	a.rmt_args.args = buf;
-	if (!svc_getargs(xprt, xdr_rmtcall_args, &a))
+	if (!svc_getargs(xprt, (xdrproc_t)xdr_rmtcall_args, (caddr_t)&a))
 		return;
 	/* host and service access control */
 	if (!check_callit(svc_getcaller(xprt), 
@@ -670,9 +674,11 @@ callit(rqstp, xprt)
 			   au->aup_uid, au->aup_gid, au->aup_len, au->aup_gids);
 		}
 		a.rmt_port = (u_long)port;
-		if (clnt_call(client, a.rmt_proc, xdr_opaque_parms, &a,
-		    xdr_len_opaque_parms, &a, timeout) == RPC_SUCCESS) {
-			svc_sendreply(xprt, xdr_rmtcall_result, (caddr_t)&a);
+		if (clnt_call(client, a.rmt_proc, (xdrproc_t)xdr_opaque_parms,
+			      (caddr_t)&a, (xdrproc_t)xdr_len_opaque_parms,
+			      (caddr_t)&a, timeout) == RPC_SUCCESS) {
+			svc_sendreply(xprt, (xdrproc_t)xdr_rmtcall_result,
+				      (caddr_t)&a);
 		}
 		AUTH_DESTROY(client->cl_auth);
 		clnt_destroy(client);
