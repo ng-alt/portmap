@@ -161,8 +161,10 @@ main(int argc, char **argv)
 	int len = sizeof(struct sockaddr_in);
 	register struct pmaplist *pml;
 	char *chroot_path = NULL;
+	struct in_addr bindaddr;
+	int have_bindaddr = 0;
 
-	while ((c = getopt(argc, argv, "dt:v")) != EOF) {
+	while ((c = getopt(argc, argv, "dlt:vi:")) != EOF) {
 		switch (c) {
 
 		case 'd':
@@ -177,12 +179,21 @@ main(int argc, char **argv)
 			verboselog = 1;
 			break;
 
+		case 'l':
+			optarg = "127.0.0.1";
+			/* FALL THROUGH */
+		case 'i':
+			have_bindaddr = inet_aton(optarg, &bindaddr);
+			break;
 		default:
-			(void) fprintf(stderr, "usage: %s [-dv] [-t dir]\n",
-				       argv[0]);
+			fprintf(stderr,
+				"usage: %s [-dlv] [-t dir] [-i address]\n",
+				argv[0]);
 			(void) fprintf(stderr, "-d: debugging mode\n");
 			(void) fprintf(stderr, "-t dir: chroot into dir\n");
 			(void) fprintf(stderr, "-v: verbose logging\n");
+			(void) fprintf(stderr, "-i address; bind to address\n");
+			(void) fprintf(stderr, "-l: same as -l 127.0.0.1\n");
 			exit(1);
 		}
 	}
@@ -211,6 +222,9 @@ main(int argc, char **argv)
 	addr.sin_addr.s_addr = 0;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(PMAPPORT);
+	if (have_bindaddr)
+		memcpy(&addr.sin_addr, &bindaddr, sizeof(bindaddr));
+
 	if (bind(sock, (struct sockaddr *)&addr, len) != 0) {
 		syslog(LOG_ERR, "cannot bind udp: %m");
 		exit(1);
