@@ -149,6 +149,18 @@ static int on = 1;
 #endif
 #endif
 
+/*
+ * We record with each registration a flag telling whether it was
+ * registered with a privilege port or not.
+ * If it was, it can only be unregistered with a privileged port.
+ * So that we can still use standard pmap xdr routines, we store
+ * this flag in a structure wrapped around a pmaplist.
+ */
+struct flagged_pml {
+	struct pmaplist pml;
+	int priv;
+};
+
 int
 main(int argc, char **argv)
 {
@@ -157,6 +169,7 @@ main(int argc, char **argv)
 	struct sockaddr_in addr;
 	int len = sizeof(struct sockaddr_in);
 	struct pmaplist *pml;
+	struct flagged_pml *fpml;
 	char *chroot_path = NULL;
 	struct in_addr bindaddr;
 	int have_bindaddr = 0;
@@ -237,8 +250,10 @@ main(int argc, char **argv)
 		exit(1);
 	}
 	/* make an entry for ourself */
-	pml = (struct pmaplist *)malloc((u_int)sizeof(struct pmaplist));
-	pml->pml_next = 0;
+	fpml = malloc(sizeof(struct flagged_pml));
+	pml = &fpml->pml;
+	fpml->priv = 1;
+	pml->pml_next = NULL;
 	pml->pml_map.pm_prog = PMAPPROG;
 	pml->pml_map.pm_vers = PMAPVERS;
 	pml->pml_map.pm_prot = IPPROTO_UDP;
@@ -262,7 +277,9 @@ main(int argc, char **argv)
 		exit(1);
 	}
 	/* make an entry for ourself */
-	pml = (struct pmaplist *)malloc((u_int)sizeof(struct pmaplist));
+	fpml = malloc(sizeof(struct flagged_pml));
+	pml = &fpml->pml;
+	fpml->priv = 1;
 	pml->pml_map.pm_prog = PMAPPROG;
 	pml->pml_map.pm_vers = PMAPVERS;
 	pml->pml_map.pm_prot = IPPROTO_TCP;
@@ -355,6 +372,7 @@ static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt)
 {
 	struct pmap reg;
 	struct pmaplist *pml, *prevpml, *fnd;
+	struct flagged_pml *fpml;
 	int ans, port;
 	caddr_t t;
 	
@@ -413,10 +431,15 @@ static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt)
 				/* 
 				 * add to END of list
 				 */
-				pml = (struct pmaplist *)
-				    malloc((u_int)sizeof(struct pmaplist));
+				fpml = (struct flagged_pml *)
+				    malloc((u_int)sizeof(struct flagged_pml));
+				pml = &fpml->pml;
+				fpml->priv =
+					(ntohs(svc_getcaller(xprt)->sin_port)
+					 < IPPORT_RESERVED);
 				pml->pml_map = reg;
 				pml->pml_next = 0;
+
 				if (pmaplist == 0) {
 					pmaplist = pml;
 				} else {
@@ -465,6 +488,14 @@ static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt)
 					ans = 0;
 					break;
 				}
+				fpml = (struct flagged_pml*)pml;
+				if (fpml->priv &&
+				    (ntohs(svc_getcaller(xprt)->sin_port)
+				     >= IPPORT_RESERVED)) {
+					ans = 0;
+					break;
+				}
+
 				ans = 1;
 				t = (caddr_t)pml;
 				pml = pml->pml_next;
