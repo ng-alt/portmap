@@ -36,7 +36,8 @@
  */
 
 #ifndef lint
-static char sccsid[] = "@(#) from_local.c 1.3 96/05/31 15:52:57";
+static __attribute__((__used__)) char
+sccsid[] = "@(#) from_local.c 1.3 96/05/31 15:52:57";
 #endif
 
 #include <sys/types.h>
@@ -67,7 +68,7 @@ static struct in_addr *addrs;
 
 /* grow_addrs - extend list of local interface addresses */
 
-static int grow_addrs()
+static int grow_addrs(void)
 {
     struct in_addr *new_addrs;
     int     new_num;
@@ -95,7 +96,8 @@ static int grow_addrs()
 
 /* find_local - find all IP addresses for this host */
 
-find_local()
+static int
+find_local(void)
 {
     struct ifconf ifc;
     struct ifreq ifreq;
@@ -153,8 +155,7 @@ find_local()
 
 /* from_local - determine whether request comes from the local system */
 
-from_local(addr)
-struct sockaddr_in *addr;
+int from_local(struct sockaddr_in *addr)
 {
     int     i;
 

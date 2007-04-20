@@ -6,7 +6,8 @@
   */
 
 #ifndef lint
-static char sccsid[] = "@(#) pmap_dump.c 1.1 92/06/11 22:53:15";
+static __attribute__((__used__)) char
+sccsid[] = "@(#) pmap_dump.c 1.1 92/06/11 22:53:15";
 #endif
 
 #include <stdio.h>
@@ -21,11 +22,10 @@ static char sccsid[] = "@(#) pmap_dump.c 1.1 92/06/11 22:53:15";
 #include <rpc/pmap_clnt.h>
 #include <rpc/pmap_prot.h>
 
-static char *protoname();
+static char *protoname(u_long proto);
 
-main(argc, argv)
-int     argc;
-char  **argv;
+int
+main(int argc, char **argv)
 {
     struct sockaddr_in addr;
     register struct pmaplist *list;
@@ -45,8 +45,7 @@ char  **argv;
     return (fclose(stdout) ? (perror(argv[0]), 1) : 0);
 }
 
-static char *protoname(proto)
-u_long  proto;
+static char *protoname(u_long proto)
 {
     static char buf[BUFSIZ];
 

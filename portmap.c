@@ -38,7 +38,8 @@ char copyright[] =
 #endif /* not lint */
 
 #ifndef lint
-static char sccsid[] = "@(#) portmap.c 1.6 96/07/06 23:06:23";
+static __attribute__((__used__)) char
+sccsid[] = "@(#) portmap.c 1.6 96/07/06 23:06:23";
 #endif /* not lint */
 
 /*
@@ -98,7 +99,6 @@ static char sccsid[] = "@(#)portmap.c 1.32 87/08/06 Copyr 1984 Sun Micro";
 #include <netinet/in.h>
 #endif
 
-extern char *strerror();
 #include <stdlib.h>
 
 #ifndef LOG_PERROR
@@ -122,12 +122,11 @@ extern char *strerror();
 #define setsid() setpgrp(0,0)
 #endif
 
-void reg_service();
-void reap();
-static void callit();
+static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt);
+static void reap(int);
+static void callit(struct svc_req *rqstp, SVCXPRT *xprt);
 struct pmaplist *pmaplist;
 int debugging = 0;
-extern int errno;
 
 #include "pmap_check.h"
 
@@ -151,9 +150,8 @@ static int on = 1;
 #endif
 #endif
 
-main(argc, argv)
-	int argc;
-	char **argv;
+int
+main(int argc, char **argv)
 {
 	SVCXPRT *xprt;
 	int sock, c;
@@ -302,8 +300,7 @@ void perror(const char *what)
 }
 
 static struct pmaplist *
-find_service(prog, vers, prot)
-	u_long prog, vers, prot;
+find_service(u_long prog, u_long vers, u_long prot)
 {
 	register struct pmaplist *hit = NULL;
 	register struct pmaplist *pml;
@@ -322,10 +319,7 @@ find_service(prog, vers, prot)
 /* 
  * 1 OK, 0 not
  */
-void
-reg_service(rqstp, xprt)
-	struct svc_req *rqstp;
-	SVCXPRT *xprt;
+static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt)
 {
 	struct pmap reg;
 	struct pmaplist *pml, *prevpml, *fnd;
@@ -539,9 +533,7 @@ struct encap_parms {
 };
 
 static bool_t
-xdr_encap_parms(xdrs, epp)
-	XDR *xdrs;
-	struct encap_parms *epp;
+xdr_encap_parms(XDR *xdrs, struct encap_parms *epp)
 {
 
 	return (xdr_bytes(xdrs, &(epp->args), &(epp->arglen), ARGSIZE));
@@ -556,9 +548,7 @@ struct rmtcallargs {
 };
 
 static bool_t
-xdr_rmtcall_args(xdrs, cap)
-	register XDR *xdrs;
-	register struct rmtcallargs *cap;
+xdr_rmtcall_args(XDR *xdrs, struct rmtcallargs *cap)
 {
 
 	/* does not get a port number */
@@ -571,9 +561,7 @@ xdr_rmtcall_args(xdrs, cap)
 }
 
 static bool_t
-xdr_rmtcall_result(xdrs, cap)
-	register XDR *xdrs;
-	register struct rmtcallargs *cap;
+xdr_rmtcall_result(XDR *xdrs, struct rmtcallargs *cap)
 {
 	if (xdr_u_long(xdrs, &(cap->rmt_port)))
 		return (xdr_encap_parms(xdrs, &(cap->rmt_args)));
@@ -585,9 +573,7 @@ xdr_rmtcall_result(xdrs, cap)
  * The arglen must already be set!!
  */
 static bool_t
-xdr_opaque_parms(xdrs, cap)
-	XDR *xdrs;
-	struct rmtcallargs *cap;
+xdr_opaque_parms(XDR *xdrs, struct rmtcallargs *cap)
 {
 
 	return (xdr_opaque(xdrs, cap->rmt_args.args, cap->rmt_args.arglen));
@@ -598,9 +584,7 @@ xdr_opaque_parms(xdrs, cap)
  * and then calls xdr_opaque_parms.
  */
 static bool_t
-xdr_len_opaque_parms(xdrs, cap)
-	register XDR *xdrs;
-	struct rmtcallargs *cap;
+xdr_len_opaque_parms(register XDR *xdrs, struct rmtcallargs *cap)
 {
 	register u_int beginpos, lowpos, highpos, currpos, pos;
 
@@ -630,10 +614,7 @@ xdr_len_opaque_parms(xdrs, cap)
  * This now forks so that the program & process that it calls can call 
  * back to the portmapper.
  */
-static void
-callit(rqstp, xprt)
-	struct svc_req *rqstp;
-	SVCXPRT *xprt;
+static void callit(struct svc_req *rqstp, SVCXPRT *xprt)
 {
 	struct rmtcallargs a;
 	struct pmaplist *pml;
@@ -690,8 +671,7 @@ callit(rqstp, xprt)
 	exit(0);
 }
 
-void
-reap()
+static void reap(int ignore)
 {
 	while (wait3((int *)NULL, WNOHANG, (struct rusage *)NULL) > 0);
 }

@@ -33,9 +33,12 @@
   */
 
 #ifndef lint
-static char sccsid[] = "@(#) pmap_check.c 1.8 96/07/07 10:49:10";
+static __attribute__((__used__)) char
+sccsid[] = "@(#) pmap_check.c 1.8 96/07/07 10:49:10";
 #endif
 
+#include <sys/types.h>
+#include <unistd.h>
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
 #include <syslog.h>
@@ -45,8 +48,8 @@ static char sccsid[] = "@(#) pmap_check.c 1.8 96/07/07 10:49:10";
 #include <netinet/in.h>
 #include <rpc/rpcent.h>
 #endif
-
-extern char *inet_ntoa();
+#include <tcpd.h>
+#include <arpa/inet.h>
 
 #include "pmap_check.h"
 
@@ -60,8 +63,9 @@ extern char *inet_ntoa();
 #define MOUNTPROC_MNT	((u_long) 1)
 #define NFS_PORT	2049
 
-static void logit();
-static void toggle_verboselog();
+static void logit(int severity, struct sockaddr_in *addr,
+		  u_long procnum, u_long prognum, char *text);
+static void toggle_verboselog(int sig);
 int     verboselog = 0;
 int     allow_severity = LOG_INFO;
 int     deny_severity = LOG_WARNING;
@@ -94,7 +98,7 @@ int     deny_severity = LOG_WARNING;
 
 /* check_startup - additional startup code */
 
-void    check_startup()
+void check_startup(void)
 {
 
     /*
@@ -110,10 +114,9 @@ void    check_startup()
 
 /* check_default - additional checks for NULL, DUMP, GETPORT and unknown */
 
-check_default(addr, proc, prog)
-struct sockaddr_in *addr;
-u_long  proc;
-u_long  prog;
+int
+check_default(struct sockaddr_in *addr, u_long  proc,
+	      u_long  prog)
 {
 #ifdef HOSTS_ACCESS
     if (!(from_local(addr) || good_client(addr))) {
@@ -128,11 +131,9 @@ u_long  prog;
 
 /* check_privileged_port - additional checks for privileged-port updates */
 
-check_privileged_port(addr, proc, prog, port)
-struct sockaddr_in *addr;
-u_long  proc;
-u_long  prog;
-u_long  port;
+int
+check_privileged_port(struct sockaddr_in *addr, u_long  proc,
+		      u_long  prog, u_long  port)
 {
 #ifdef CHECK_PORT
     if (!legal_port(addr, port)) {
@@ -147,13 +148,9 @@ u_long  port;
 
 #ifdef LOOPBACK_SETUNSET
 
-check_setunset(xprt, ludp_xprt, ltcp_xprt, proc, prog, port)
-SVCXPRT *xprt;
-SVCXPRT *ludp_xprt;
-SVCXPRT *ltcp_xprt;
-u_long  proc;
-u_long  prog;
-u_long  port;
+int
+check_setunset(SVCXPRT *xprt, SVCXPRT *ludp_xprt, SVCXPRT *ltcp_xprt,
+	       u_long  proc, u_long  prog, u_long  port)
 {
     struct sockaddr_in *addr = svc_getcaller(xprt);
 
@@ -173,11 +170,9 @@ u_long  port;
 
 #else
 
-check_setunset(addr, proc, prog, port)
-struct sockaddr_in *addr;
-u_long  proc;
-u_long  prog;
-u_long  port;
+int
+check_setunset(struct sockaddr_in *addr, u_long  proc,
+	       u_long  prog, u_long  port)
 {
     if (!from_local(addr)) {
 #ifdef HOSTS_ACCESS
@@ -197,11 +192,9 @@ u_long  port;
 
 /* check_callit - additional checks for forwarded requests */
 
-check_callit(addr, proc, prog, aproc)
-struct sockaddr_in *addr;
-u_long  proc;
-u_long  prog;
-u_long  aproc;
+int
+check_callit(struct sockaddr_in *addr, u_long  proc,
+	     u_long  prog, u_long  aproc)
 {
 #ifdef HOSTS_ACCESS
     if (!(from_local(addr) || good_client(addr))) {
@@ -222,8 +215,7 @@ u_long  aproc;
 
 /* toggle_verboselog - toggle verbose logging flag */
 
-static void toggle_verboselog(sig)
-int     sig;
+static void toggle_verboselog(int sig)
 {
     (void) signal(sig, toggle_verboselog);
     verboselog = !verboselog;
@@ -231,12 +223,8 @@ int     sig;
 
 /* logit - report events of interest via the syslog daemon */
 
-static void logit(severity, addr, procnum, prognum, text)
-int     severity;
-struct sockaddr_in *addr;
-u_long  procnum;
-u_long  prognum;
-char   *text;
+static void logit(int severity, struct sockaddr_in *addr,
+		  u_long procnum, u_long prognum, char *text)
 {
     char   *procname;
     char    procbuf[4 * sizeof(u_long)];
@@ -249,13 +237,13 @@ char   *text;
     };
     struct proc_map *procp;
     static struct proc_map procmap[] = {
-	PMAPPROC_CALLIT, "callit",
-	PMAPPROC_DUMP, "dump",
-	PMAPPROC_GETPORT, "getport",
-	PMAPPROC_NULL, "null",
-	PMAPPROC_SET, "set",
-	PMAPPROC_UNSET, "unset",
-	0, 0,
+	{ PMAPPROC_CALLIT, "callit" },
+	{ PMAPPROC_DUMP, "dump"} ,
+	{ PMAPPROC_GETPORT, "getport"} ,
+	{ PMAPPROC_NULL, "null"} ,
+	{ PMAPPROC_SET, "set"} ,
+	{ PMAPPROC_UNSET, "unset"} ,
+	{ 0, 0} ,
     };
 
     /*
@@ -269,7 +257,7 @@ char   *text;
 
 	if (prognum == 0) {
 	    progname = "";
-	} else if (rpc = getrpcbynumber((int) prognum)) {
+	} else if ((rpc = getrpcbynumber((int) prognum))) {
 	    progname = rpc->r_name;
 	} else {
 	    sprintf(progname = progbuf, "%lu", prognum);

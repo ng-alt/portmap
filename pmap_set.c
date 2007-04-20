@@ -6,7 +6,8 @@
   */
 
 #ifndef lint
-static char sccsid[] = "@(#) pmap_set.c 1.2 96/07/06 23:06:23";
+static __attribute__((__used__)) char
+sccsid[] = "@(#) pmap_set.c 1.2 96/07/06 23:06:23";
 #endif
 
 #include <stdio.h>
@@ -17,9 +18,12 @@ static char sccsid[] = "@(#) pmap_set.c 1.2 96/07/06 23:06:23";
 #include <rpc/rpc.h>
 #include <rpc/pmap_clnt.h>
 
-main(argc, argv)
-int     argc;
-char  **argv;
+static int
+parse_line(char *buf, u_long *prog, u_long *vers,
+	   int *prot, unsigned *port);
+
+int
+main(int argc, char **argv)
 {
     char    buf[BUFSIZ];
     u_long  prog;
@@ -40,12 +44,9 @@ char  **argv;
 
 /* parse_line - convert line to numbers */
 
-parse_line(buf, prog, vers, prot, port)
-char   *buf;
-u_long *prog;
-u_long *vers;
-int    *prot;
-unsigned *port;
+static int
+parse_line(char *buf, u_long *prog, u_long *vers,
+	   int *prot, unsigned *port)
 {
     char    proto_name[BUFSIZ];
 
