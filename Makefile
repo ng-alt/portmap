@@ -7,7 +7,7 @@
 # sendmail transaction logs. Change the definition of the following macro
 # if you disagree. See `man 3 syslog' for examples. Some syslog versions
 # do not provide this flexibility.
-#
+
 FACILITY=LOG_DAEMON
 
 # To disable tcp-wrapper style access control, comment out the following
@@ -15,8 +15,10 @@ FACILITY=LOG_DAEMON
 # no access control tables. The local system, since it runs the portmap
 # daemon, is always treated as an authorized host.
 
-HOSTS_ACCESS= -DHOSTS_ACCESS
-WRAP_LIB = -lwrap
+ifeq ($(NO_TCP_WRAPPER),)
+CPPFLAGS += -DHOSTS_ACCESS
+WRAP_LIB  = -lwrap
+endif
 
 # Comment out if your RPC library does not allocate privileged ports for
 # requests from processes with root privilege, or the new portmap will
@@ -24,7 +26,7 @@ WRAP_LIB = -lwrap
 # ports. You can find out by running "rpcinfo -p"; if all mountd and NIS
 # daemons use a port >= 1024 you should probably disable the next line.
 
-CHECK_PORT = -DCHECK_PORT
+CPPFLAGS += -DCHECK_PORT
 
 # Warning: troublesome feature ahead!! Enable only when you are really
 # desperate!!
@@ -59,63 +61,52 @@ CHECK_PORT = -DCHECK_PORT
 # probably much easier to just block port UDP and TCP ports 111 on
 # your routers.
 #
-# LOOPBACK = -DLOOPBACK_SETUNSET
+# CPPFLAGS += -DLOOPBACK_SETUNSET
 
 # When the portmapper cannot find any local interfaces (it will complain
 # to the syslog daemon) your system probably has variable-length socket
 # address structures (struct sockaddr has a sa_len component; examples:
 # AIX 4.1 and 4.4BSD). Uncomment next macro definition in that case.
 #
-# SA_LEN = -DHAS_SA_LEN		# AIX 4.x, BSD 4.4, FreeBSD, NetBSD
+# CPPFLAGS += -DHAS_SA_LEN		# AIX 4.x, BSD 4.4, FreeBSD, NetBSD
 
 # With verbose logging on, HP-UX 9.x and AIX 4.1 leave zombies behind when
 # SIGCHLD is not ignored. Enable next macro for a fix.
 #
-ZOMBIES = -DIGNORE_SIGCHLD	# AIX 4.x, HP-UX 9.x
+CPPFLAGS += -DIGNORE_SIGCHLD	# AIX 4.x, HP-UX 9.x
 
 # Uncomment the following macro if your system does not have u_long.
 #
-# ULONG	=-Du_long="unsigned long"
+# CPPFLAGS	+=-Du_long="unsigned long"
 
 #
-# LIBS	= -m
-# NSARCHS	= -arch m68k -arch i386 -arch hppa
+# LDLIBS	+= -m
+# CFLAGS	+= -arch m68k -arch i386 -arch hppa
 
 # Auxiliary libraries that you may have to specify
 #
-# LIBS	= -lrpc
+# LDLIBS	+= -lrpc
 
 # Comment out if your compiler talks ANSI and understands const
 #
-# CONST   = -Dconst=
+# CPPFLAGS += -Dconst=
 
 ### End of configurable stuff.
 ##############################
 
-SHELL	= /bin/sh
-
-RPM_OPT_FLAGS = -O2
-
-COPT	= $(CONST) $(HOSTS_ACCESS) $(CHECK_PORT) \
-	$(SYS) -DFACILITY=$(FACILITY) $(ULONG) $(ZOMBIES) $(SA_LEN) \
-	$(LOOPBACK)
-CFLAGS	= $(COPT) $(RPM_OPT_FLAGS) $(NSARCHS) -Wall -Wstrict-prototypes \
-	-fpie
-OBJECTS	= portmap.o pmap_check.o from_local.o
+CPPFLAGS += -DFACILITY=$(FACILITY)
+CFLAGS   ?= -O2
+CFLAGS   += -Wall -Wstrict-prototypes
 
 all:	portmap pmap_dump pmap_set
 
-portmap: $(OBJECTS)
-	$(CC) $(CFLAGS) -pie -o $@ $(OBJECTS) $(WRAP_LIB) $(LIBS)
+CPPFLAGS += $(HOSTS_ACCESS)
+portmap: CFLAGS   += -fpie
+portmap: LDLIBS   += $(WRAP_LIB)
+portmap: LDFLAGS  += -pie
+portmap: portmap.o pmap_check.o from_local.o
 
-pmap_dump: pmap_dump.c
-	$(CC) $(CFLAGS) -o $@ $? $(LIBS)
-
-pmap_set: pmap_set.c
-	$(CC) $(CFLAGS) -o $@ $? $(LIBS)
-
-from_local: from_local.c
-	cc $(CFLAGS) -DTEST -o $@ from_local.c
+from_local: CPPFLAGS += -DTEST
 
 install: all
 	install -o root -g root -m 0755 -s portmap ${BASEDIR}/sbin
@@ -125,23 +116,12 @@ install: all
 	install -o root -g root -m 0644 pmap_dump.8 ${BASEDIR}/usr/share/man/man8
 	install -o root -g root -m 0644 pmap_set.8 ${BASEDIR}/usr/share/man/man8
 
-lint:	
-	lint $(COPT) $(OBJECTS:%.o=%.c)
-
 clean:
 	rm -f *.o portmap pmap_dump pmap_set from_local \
 	    core
 
-tidy:	clean
-	chmod 755 . ; chmod -R a+r .
+-include .depend
+.depend: *.c
+	$(CC) -MM $(CFLAGS) *.c > .depend
 
-deps:
-	@$(CC) -M $(CFLAGS) *.c | grep -v /usr/include |sed 's/\.\///'
-
-from_local.o: from_local.c
-pmap_check.o: pmap_check.c
-pmap_check.o: pmap_check.h Makefile
-pmap_dump.o: pmap_dump.c
-pmap_set.o: pmap_set.c
-portmap.o: portmap.c
-portmap.o: pmap_check.h Makefile
+.PHONY: all clean install
