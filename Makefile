@@ -96,10 +96,12 @@ ZOMBIES = -DIGNORE_SIGCHLD	# AIX 4.x, HP-UX 9.x
 
 SHELL	= /bin/sh
 
+RPM_OPT_FLAGS = -O2
+
 COPT	= $(CONST) $(HOSTS_ACCESS) $(CHECK_PORT) \
 	$(SYS) -DFACILITY=$(FACILITY) $(ULONG) $(ZOMBIES) $(SA_LEN) \
 	$(LOOPBACK) $(SETPGRP)
-CFLAGS	= $(COPT) -O $(NSARCHS) -Wall -Wstrict-prototypes \
+CFLAGS	= $(COPT) $(RPM_OPT_FLAGS) $(NSARCHS) -Wall -Wstrict-prototypes \
 	-fpie
 OBJECTS	= portmap.o pmap_check.o from_local.o
 
