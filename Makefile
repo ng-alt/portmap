@@ -119,6 +119,14 @@ pmap_set: pmap_set.c
 from_local: from_local.c
 	cc $(CFLAGS) -DTEST -o $@ from_local.c
 
+install: all
+	install -o root -g root -m 0755 -s portmap ${BASEDIR}/sbin
+	install -o root -g root -m 0755 -s pmap_dump ${BASEDIR}/sbin
+	install -o root -g root -m 0755 -s pmap_set ${BASEDIR}/sbin
+	install -o root -g root -m 0644 portmap.8 ${BASEDIR}/usr/share/man/man8
+	install -o root -g root -m 0644 pmap_dump.8 ${BASEDIR}/usr/share/man/man8
+	install -o root -g root -m 0644 pmap_set.8 ${BASEDIR}/usr/share/man/man8
+
 lint:	
 	lint $(COPT) $(OBJECTS:%.o=%.c)
 
