@@ -16,7 +16,7 @@ FACILITY=LOG_MAIL
 # daemon, is always treated as an authorized host.
 
 HOSTS_ACCESS= -DHOSTS_ACCESS
-WRAP_LIB = $(WRAP_DIR)/libwrap.a
+WRAP_LIB = -lwrap
 
 # Comment out if your RPC library does not allocate privileged ports for
 # requests from processes with root privilege, or the new portmap will
@@ -77,16 +77,6 @@ CHECK_PORT = -DCHECK_PORT
 #
 # ULONG	=-Du_long="unsigned long"
 
-# Later versions of the tcp wrapper (log_tcp package) come with a
-# libwrap.a object library. WRAP_DIR should specify the directory with
-# that library.
-
-WRAP_DIR= ../tcp_wrappers
-
-# Auxiliary object files that may be missing from your C library.
-#
-AUX	= daemon.o strerror.o
-
 # NEXTSTEP is a little different. The following seems to work with NS 3.2
 #
 # SETPGRP	=-DUSE_SETPGRP00
@@ -110,11 +100,11 @@ COPT	= $(CONST) $(HOSTS_ACCESS) $(CHECK_PORT) \
 	$(SYS) -DFACILITY=$(FACILITY) $(ULONG) $(ZOMBIES) $(SA_LEN) \
 	$(LOOPBACK) $(SETPGRP)
 CFLAGS	= $(COPT) -O $(NSARCHS)
-OBJECTS	= portmap.o pmap_check.o from_local.o $(AUX)
+OBJECTS	= portmap.o pmap_check.o from_local.o
 
 all:	portmap pmap_dump pmap_set
 
-portmap: $(OBJECTS) $(WRAP_DIR)/libwrap.a
+portmap: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(WRAP_LIB) $(LIBS)
 
 pmap_dump: pmap_dump.c
@@ -142,7 +132,6 @@ tidy:	clean
 deps:
 	@$(CC) -M $(CFLAGS) *.c | grep -v /usr/include |sed 's/\.\///'
 
-daemon.o: daemon.c
 from_local.o: from_local.c
 get_myaddress.o: get_myaddress.c
 pmap_check.o: pmap_check.c
@@ -151,4 +140,3 @@ pmap_dump.o: pmap_dump.c
 pmap_set.o: pmap_set.c
 portmap.o: portmap.c
 portmap.o: pmap_check.h Makefile
-strerror.o: strerror.c
