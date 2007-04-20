@@ -77,9 +77,7 @@ ZOMBIES = -DIGNORE_SIGCHLD	# AIX 4.x, HP-UX 9.x
 #
 # ULONG	=-Du_long="unsigned long"
 
-# NEXTSTEP is a little different. The following seems to work with NS 3.2
 #
-# SETPGRP	=-DUSE_SETPGRP00
 # LIBS	= -m
 # NSARCHS	= -arch m68k -arch i386 -arch hppa
 
@@ -100,7 +98,7 @@ RPM_OPT_FLAGS = -O2
 
 COPT	= $(CONST) $(HOSTS_ACCESS) $(CHECK_PORT) \
 	$(SYS) -DFACILITY=$(FACILITY) $(ULONG) $(ZOMBIES) $(SA_LEN) \
-	$(LOOPBACK) $(SETPGRP)
+	$(LOOPBACK)
 CFLAGS	= $(COPT) $(RPM_OPT_FLAGS) $(NSARCHS) -Wall -Wstrict-prototypes \
 	-fpie
 OBJECTS	= portmap.o pmap_check.o from_local.o

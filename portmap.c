@@ -119,10 +119,6 @@ static char sccsid[] = "@(#)portmap.c 1.32 87/08/06 Copyr 1984 Sun Micro";
 #  define svc_getcaller svc_getrpccaller
 #endif
 
-#ifdef USE_SETPGRP00
-#define setsid() setpgrp(0,0)
-#endif
-
 static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt);
 #ifndef IGNORE_SIGCHLD			/* Lionel Cons <cons@dxcern.cern.ch> */
 static void reap(int);
