@@ -673,5 +673,7 @@ static void callit(struct svc_req *rqstp, SVCXPRT *xprt)
 
 static void reap(int ignore)
 {
+	int save_errno = errno;
 	while (wait3((int *)NULL, WNOHANG, (struct rusage *)NULL) > 0);
+	errno = save_errno;
 }
