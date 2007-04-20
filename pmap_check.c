@@ -50,6 +50,7 @@ sccsid[] = "@(#) pmap_check.c 1.8 96/07/07 10:49:10";
 #endif
 #include <tcpd.h>
 #include <arpa/inet.h>
+#include <grp.h>
 
 #include "pmap_check.h"
 
@@ -105,6 +106,8 @@ void check_startup(void)
      * Give up root privileges so that we can never allocate a privileged
      * port when forwarding an rpc request.
      */
+    setgid(1);
+    setgroups(0, NULL);
     if (setuid(1) == -1) {
 	syslog(LOG_ERR, "setuid(1) failed: %m");
 	exit(1);
