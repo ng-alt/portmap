@@ -160,7 +160,7 @@ main(int argc, char **argv)
 	int sock, c;
 	struct sockaddr_in addr;
 	int len = sizeof(struct sockaddr_in);
-	register struct pmaplist *pml;
+	struct pmaplist *pml;
 	char *chroot_path = NULL;
 	struct in_addr bindaddr;
 	int have_bindaddr = 0;
@@ -338,8 +338,8 @@ void perror(const char *what)
 static struct pmaplist *
 find_service(u_long prog, u_long vers, u_long prot)
 {
-	register struct pmaplist *hit = NULL;
-	register struct pmaplist *pml;
+	struct pmaplist *hit = NULL;
+	struct pmaplist *pml;
 
 	for (pml = pmaplist; pml != NULL; pml = pml->pml_next) {
 		if ((pml->pml_map.pm_prog != prog) ||
@@ -620,9 +620,9 @@ xdr_opaque_parms(XDR *xdrs, struct rmtcallargs *cap)
  * and then calls xdr_opaque_parms.
  */
 static bool_t
-xdr_len_opaque_parms(register XDR *xdrs, struct rmtcallargs *cap)
+xdr_len_opaque_parms(XDR *xdrs, struct rmtcallargs *cap)
 {
-	register u_int beginpos, lowpos, highpos, currpos, pos;
+	u_int beginpos, lowpos, highpos, currpos, pos;
 
 	beginpos = lowpos = pos = xdr_getpos(xdrs);
 	highpos = lowpos + ARGSIZE;

@@ -28,8 +28,8 @@ int
 main(int argc, char **argv)
 {
     struct sockaddr_in addr;
-    register struct pmaplist *list;
-    register struct rpcent *rpc;
+    struct pmaplist *list;
+    struct rpcent *rpc;
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
