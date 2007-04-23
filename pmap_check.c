@@ -106,9 +106,9 @@ void check_startup(void)
      * Give up root privileges so that we can never allocate a privileged
      * port when forwarding an rpc request.
      */
-    setgid(1);
+    setgid(daemon_gid);
     setgroups(0, NULL);
-    if (setuid(1) == -1) {
+    if (setuid(daemon_uid) == -1) {
 	syslog(LOG_ERR, "setuid(1) failed: %m");
 	exit(1);
     }

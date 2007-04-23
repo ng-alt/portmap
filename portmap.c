@@ -102,6 +102,7 @@ static char sccsid[] = "@(#)portmap.c 1.32 87/08/06 Copyr 1984 Sun Micro";
 #include <arpa/inet.h>
 
 #include <stdlib.h>
+#include <pwd.h>
 
 #ifndef LOG_PERROR
 #define LOG_PERROR 0
@@ -153,6 +154,14 @@ static int on = 1;
 #endif
 #endif
 
+#ifdef DAEMON_UID
+int daemon_uid = DAEMON_UID;
+int daemon_gid = DAEMON_GID;
+#else
+int daemon_uid = 1;
+int daemon_gid = 1;
+#endif
+
 /*
  * We record with each registration a flag telling whether it was
  * registered with a privilege port or not.
@@ -178,10 +187,29 @@ main(int argc, char **argv)
 	struct in_addr bindaddr;
 	int have_bindaddr = 0;
 	int foreground = 0;
+	int have_uid = 0;
 
-	while ((c = getopt(argc, argv, "dflt:vi:")) != EOF) {
+	while ((c = getopt(argc, argv, "dflt:vi:u:g:")) != EOF) {
 		switch (c) {
 
+		case 'u':
+			daemon_uid = atoi(optarg);
+			if (daemon_uid <= 0) {
+				fprintf(stderr,
+					"portmap: illegal uid: %s\n", optarg);
+				exit(1);
+			}
+			have_uid = 1;
+			break;
+		case 'g':
+			daemon_gid = atoi(optarg);
+			if (daemon_gid <= 0) {
+				fprintf(stderr,
+					"portmap: illegal gid: %s\n", optarg);
+				exit(1);
+			}
+			have_uid = 1;
+			break;
 		case 'd':
 			debugging = 1;
 		case 'f':
@@ -204,7 +232,8 @@ main(int argc, char **argv)
 			break;
 		default:
 			fprintf(stderr,
-				"usage: %s [-dflv] [-t dir] [-i address]\n",
+				"usage: %s [-dflv] [-t dir] [-i address] "
+				"[-u uid] [-g gid]\n",
 				argv[0]);
 			fprintf(stderr, "-d: debugging mode\n");
 			fprintf(stderr,
@@ -213,6 +242,8 @@ main(int argc, char **argv)
 			fprintf(stderr, "-v: verbose logging\n");
 			fprintf(stderr, "-i address: bind to address\n");
 			fprintf(stderr, "-l: same as -i 127.0.0.1\n");
+			fprintf(stderr, "-u uid : setuid to this uid\n");
+			fprintf(stderr, "-g uid : setgid to this gid\n");
 			exit(1);
 		}
 	}
@@ -227,6 +258,19 @@ main(int argc, char **argv)
 	    FACILITY);
 #else
 	openlog("portmap", LOG_PID|LOG_NDELAY | ( foreground ? LOG_PERROR : 0));
+#endif
+
+#ifdef RPCUSER
+	if (!have_uid) {
+		struct passwd *pwent;
+		pwent = getpwnam(RPCUSER);
+		if (pwent) {
+			daemon_uid = pwent->pw_uid;
+			daemon_gid = pwent->pw_gid;
+		} else
+			syslog(LOG_WARNING, "user '" RPCUSER
+			       "' not found, reverting to default uid");
+	}
 #endif
 
 	if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {

@@ -28,6 +28,23 @@ endif
 
 CPPFLAGS += -DCHECK_PORT
 
+# The portmap daemon runs a uid=1/gid=1 by default.  You can change that
+# be defining DAEMON_UID and DAMEON_GID to numbers, or RPCUSER to a
+# name, though you must be sure that name lookup will not require use
+# of portmap.
+ifdef RPCUSER
+CPPFLAGS += -DRPCUSER=\"$(RPCUSER)\"
+MAN_SED += -e 's/RPCUSER/$(RPCUSER)/'
+else
+MAN_SED += -e 's/RPCUSER//'
+endif
+ifdef DAEMON_UID
+CPPFLAGS += -DDAEMON_UID=$(DAEMON_UID) -DDAEMON_GID=$(DAEMON_GID)
+MAN_SED += -e 's/DAEMON_UID/$(DAEMON_UID)/' -e 's/DAEMON_GID/$(DAEMON_GID)/'
+else
+MAN_SED += -e 's/DAEMON_UID/1/' -e 's/DAEMON_GID/1/'
+endif
+
 # Warning: troublesome feature ahead!! Enable only when you are really
 # desperate!!
 #
@@ -98,7 +115,7 @@ CPPFLAGS += -DFACILITY=$(FACILITY)
 CFLAGS   ?= -O2
 CFLAGS   += -Wall -Wstrict-prototypes
 
-all:	portmap pmap_dump pmap_set
+all:	portmap pmap_dump pmap_set portmap.man
 
 CPPFLAGS += $(HOSTS_ACCESS)
 portmap: CFLAGS   += -fpie
@@ -108,17 +125,20 @@ portmap: portmap.o pmap_check.o from_local.o
 
 from_local: CPPFLAGS += -DTEST
 
+portmap.man : portmap.8
+	sed $(MAN_SED) < portmap.8 > portmap.man
+
 install: all
 	install -o root -g root -m 0755 -s portmap ${BASEDIR}/sbin
 	install -o root -g root -m 0755 -s pmap_dump ${BASEDIR}/sbin
 	install -o root -g root -m 0755 -s pmap_set ${BASEDIR}/sbin
-	install -o root -g root -m 0644 portmap.8 ${BASEDIR}/usr/share/man/man8
+	install -o root -g root -m 0644 portmap.man ${BASEDIR}/usr/share/man/man8/portmap.8
 	install -o root -g root -m 0644 pmap_dump.8 ${BASEDIR}/usr/share/man/man8
 	install -o root -g root -m 0644 pmap_set.8 ${BASEDIR}/usr/share/man/man8
 
 clean:
 	rm -f *.o portmap pmap_dump pmap_set from_local \
-	    core
+	    core portmap.man
 
 -include .depend
 .depend: *.c

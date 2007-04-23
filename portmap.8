@@ -51,6 +51,8 @@ program number mapper
 .Op Fl v
 .Op Fl i Ar address
 .Op Fl l
+.Op Fl u Ar uid
+.Op Fl g Ar gid
 .Sh DESCRIPTION
 .Nm Portmap
 is a server that converts
@@ -122,6 +124,17 @@ into
 .Ar dir
 should be empty, not writeable by the daemon user, and preferably on a
 filesystem mounted read-only, noexec, nodev, and nosuid.
+.It Fl u Ar uid
+.It Fl g Ar gid
+Set the user-id and group-id of the running process to those given,
+rather than the compiled-in defaults of DAEMON_UID/DAEMON_GID.
+.if 'RPCUSER'' .ig
+If neither are set, then
+.Nm portmap
+will look up the user
+.Nm RPCUSER
+and use the uid and gid of that user.
+..
 .It Fl v
 (verbose) run
 .Nm portmap

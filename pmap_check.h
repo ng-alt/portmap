@@ -28,3 +28,6 @@ extern int deny_severity __attribute__ ((visibility ("hidden")));
 #define CHECK_SETUNSET(xprt,ludp,ltcp,proc,prog,port) \
 	check_setunset(svc_getcaller(xprt),proc,prog,port)
 #endif
+
+extern int daemon_uid;
+extern int daemon_gid;
