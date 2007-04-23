@@ -157,8 +157,10 @@ version is protected by the
 .Nm tcp_wrapper
 library. You have to give the clients access to
 .Nm portmap
-if they should be allowed to use it. To allow connects from clients of
-the network 192.168. you could use the following line in /etc/hosts.allow:
+if they should be allowed to use it.
+.if 'USE_DNS'yes' .ig
+To allow connects from clients of the network 192.168. you could use
+the following line in /etc/hosts.allow:
 
 portmap: 192.168.
 
@@ -174,6 +176,22 @@ You have to use the daemon name
 for the daemon name (even if the binary has a different name). For the
 client names you can only use the keyword ALL or IP addresses (NOT
 host or domain names).
+..
+.if !'USE_DNS'yes' .ig
+To allow connects from clients of
+the .bar.com domain you could use the following line in /etc/hosts.allow:
+.Pp
+portmap: .bar.com
+.Pp
+You have to use the daemon name
+.Nm portmap
+for the daemon name (even if the binary has a different name). For the
+client names you can use the keyword ALL, IP addresses, hostnames or domain
+names. Using netgroup names will likely cause
+.Nm portmap
+to deadlock.
+Note that localhost will always be allowed access to the portmapper.
+..
 
 For further information please have a look at the
 .Xr tcpd 8 ,

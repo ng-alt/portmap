@@ -73,8 +73,6 @@ int     deny_severity __attribute ((visibility ("hidden"))) = LOG_WARNING;
 
 /* A handful of macros for "readability". */
 
-#define	good_client(a) hosts_ctl("portmap", "", inet_ntoa(a->sin_addr), "")
-
 #define reserved_port(p) (IPPORT_RESERVED/2 < (p) && (p) < IPPORT_RESERVED)
 
 #define unreserved_port(p) (IPPORT_RESERVED <= (p) && (p) != NFS_PORT)
@@ -114,6 +112,58 @@ void check_startup(void)
     }
     (void) signal(SIGINT, toggle_verboselog);
 }
+
+
+#ifdef HOSTS_ACCESS
+static int
+good_client(struct sockaddr_in *addr)
+{
+	if (hosts_ctl("portmap", "", inet_ntoa(addr->sin_addr), ""))
+		return 1;
+#ifdef ENABLE_DNS
+{
+	struct hostent *hp;
+	char **sp;
+	char *tmpname;
+
+	/* Check the hostname. */
+	hp = gethostbyaddr ((const char *) &(addr->sin_addr),
+			    sizeof (addr->sin_addr), AF_INET);
+
+	if (!hp)
+		return 0;
+
+	/* must make sure the hostent is authoritative. */
+	tmpname = alloca (strlen (hp->h_name) + 1);
+	strcpy (tmpname, hp->h_name);
+	hp = gethostbyname(tmpname);
+	if (hp) {
+		/* now make sure the "addr->sin_addr" is on the list */
+		for (sp = hp->h_addr_list ; *sp ; sp++) {
+			if (memcmp(*sp, &(addr->sin_addr), hp->h_length)==0)
+				break;
+		}
+		if (!*sp)
+			/* it was a FAKE. */
+			return 0;
+	} else
+		/* never heard of it. misconfigured DNS? */
+		return 0;
+
+	/* Check the official name first. */
+	if (hosts_ctl("portmap", "", hp->h_name, ""))
+		return 1;
+
+	/* Check aliases. */
+	for (sp = hp->h_aliases; *sp ; sp++) {
+		if (hosts_ctl("portmap", "", *sp, ""))
+			return 1;
+	}
+}
+#endif /* ENABLE_DNS */
+	return 0;
+}
+#endif /* HOSTS_ACCESS */
 
 /* check_default - additional checks for NULL, DUMP, GETPORT and unknown */
 

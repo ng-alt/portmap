@@ -14,10 +14,18 @@ FACILITY=LOG_DAEMON
 # macro definitions.  Access control can also be turned off by providing
 # no access control tables. The local system, since it runs the portmap
 # daemon, is always treated as an authorized host.
+# By default, access control does not do hostname lookup as there is a risk
+# that will require portmap access, hence deadlock.  If you are sure the
+# target system will never user NIS for hostname lookup, you can define
+# USE_DNS to add hostname tests in hosts.allow/deny.
 
 ifeq ($(NO_TCP_WRAPPER),)
 CPPFLAGS += -DHOSTS_ACCESS
 WRAP_LIB  = -lwrap
+ifdef USE_DNS
+CPPFLAGS += -DENABLE_DNS
+MAN_SED += -e 's/USE_DNS/yes/'
+endif
 endif
 
 # Comment out if your RPC library does not allocate privileged ports for
