@@ -184,8 +184,12 @@ main(int argc, char **argv)
 	int foreground = 0;
 	int have_uid = 0;
 
-	while ((c = getopt(argc, argv, "dflt:vi:u:g:")) != EOF) {
+	while ((c = getopt(argc, argv, "Vdflt:vi:u:g:")) != EOF) {
 		switch (c) {
+
+		case 'V':
+			printf("portmap version 6.0 - 2007-May-11\n");
+			exit(1);
 
 		case 'u':
 			daemon_uid = atoi(optarg);

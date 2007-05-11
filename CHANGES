@@ -1,3 +1,14 @@
+Changes with release 6.0 (May 2007)
+
+- compile and runtime selection of uid to 'setuid' to
+- mapping table is stored in a file and can be restored on restart
+- If a privilege program registers a non-privileged port, and
+  non-privileged program can no-longer unregister it.
+- add man pages
+- allow portmap to bind to a local address only
+- support 'chroot'
+- various cleanups and minor bug fixes
+
 
 Changes with release 5 (July 1996)
 
