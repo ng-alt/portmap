@@ -37,11 +37,6 @@ char copyright[] =
  All rights reserved.\n";
 #endif /* not lint */
 
-#ifndef lint
-static __attribute__((__used__)) char
-sccsid[] = "@(#) portmap.c 1.6 96/07/06 23:06:23";
-#endif /* not lint */
-
 /*
 @(#)portmap.c	2.3 88/08/11 4.0 RPCSRC
 static char sccsid[] = "@(#)portmap.c 1.32 87/08/06 Copyr 1984 Sun Micro";

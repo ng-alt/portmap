@@ -32,10 +32,6 @@
   * Computing Science, Eindhoven University of Technology, The Netherlands.
   */
 
-#ifndef lint
-static __attribute__((__used__)) char
-sccsid[] = "@(#) pmap_check.c 1.8 96/07/07 10:49:10";
-#endif
 
 #include <sys/types.h>
 #include <unistd.h>

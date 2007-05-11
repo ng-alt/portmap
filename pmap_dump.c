@@ -5,11 +5,6 @@
   * Computing Science, Eindhoven University of Technology, The Netherlands.
   */
 
-#ifndef lint
-static __attribute__((__used__)) char
-sccsid[] = "@(#) pmap_dump.c 1.1 92/06/11 22:53:15";
-#endif
-
 #include <stdio.h>
 #include <sys/types.h>
 #ifdef SYSV40

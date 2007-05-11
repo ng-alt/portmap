@@ -1,4 +1,3 @@
-# @(#) Makefile 1.6 96/07/06 23:06:17
 
 ####################################
 ### Beginning of configurable stuff.

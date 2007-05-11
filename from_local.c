@@ -1,8 +1,8 @@
  /*
   * Check if an address belongs to the local system. Adapted from:
   * 
-  * @(#)pmap_svc.c 1.32 91/03/11 Copyright 1984,1990 Sun Microsystems, Inc.
-  * @(#)get_myaddress.c  2.1 88/07/29 4.0 RPCSRC.
+  * pmap_svc.c 1.32 91/03/11 Copyright 1984,1990 Sun Microsystems, Inc.
+  * get_myaddress.c  2.1 88/07/29 4.0 RPCSRC.
   */
 
 /*
@@ -34,11 +34,6 @@
  * 2550 Garcia Avenue
  * Mountain View, California  94043
  */
-
-#ifndef lint
-static __attribute__((__used__)) char
-sccsid[] = "@(#) from_local.c 1.3 96/05/31 15:52:57";
-#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>

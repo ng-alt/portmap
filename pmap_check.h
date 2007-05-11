@@ -1,4 +1,4 @@
-/* @(#) pmap_check.h 1.4 96/07/06 23:06:22 */
+/* pmap_check.h */
 
 extern int from_local(struct sockaddr_in *addr);
 extern void check_startup(void);
