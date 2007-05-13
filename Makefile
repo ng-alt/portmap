@@ -135,13 +135,14 @@ from_local: CPPFLAGS += -DTEST
 portmap.man : portmap.8
 	sed $(MAN_SED) < portmap.8 > portmap.man
 
+DESTDIR = $(BASEDIR)
 install: all
-	install -o root -g root -m 0755 -s portmap ${BASEDIR}/sbin
-	install -o root -g root -m 0755 -s pmap_dump ${BASEDIR}/sbin
-	install -o root -g root -m 0755 -s pmap_set ${BASEDIR}/sbin
-	install -o root -g root -m 0644 portmap.man ${BASEDIR}/usr/share/man/man8/portmap.8
-	install -o root -g root -m 0644 pmap_dump.8 ${BASEDIR}/usr/share/man/man8
-	install -o root -g root -m 0644 pmap_set.8 ${BASEDIR}/usr/share/man/man8
+	install -o root -g root -m 0755 portmap $(DESTDIR)/sbin
+	install -o root -g root -m 0755 pmap_dump $(DESTDIR)/sbin
+	install -o root -g root -m 0755 pmap_set $(DESTDIR)/sbin
+	install -o root -g root -m 0644 portmap.man $(DESTDIR)/usr/share/man/man8/portmap.8
+	install -o root -g root -m 0644 pmap_dump.8 $(DESTDIR)/usr/share/man/man8
+	install -o root -g root -m 0644 pmap_set.8 $(DESTDIR)/usr/share/man/man8
 
 clean:
 	rm -f *.o portmap pmap_dump pmap_set from_local \
