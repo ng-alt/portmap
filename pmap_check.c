@@ -44,7 +44,9 @@
 #include <netinet/in.h>
 #include <rpc/rpcent.h>
 #endif
+#ifdef HOSTS_ACCESS
 #include <tcpd.h>
+#endif
 #include <arpa/inet.h>
 #include <grp.h>
 
