@@ -71,7 +71,7 @@ int     deny_severity __attribute ((visibility ("hidden"))) = LOG_WARNING;
 
 /* A handful of macros for "readability". */
 
-#define reserved_port(p) (IPPORT_RESERVED/2 < (p) && (p) < IPPORT_RESERVED)
+#define reserved_port(p) ((p) < IPPORT_RESERVED)
 
 #define unreserved_port(p) (IPPORT_RESERVED <= (p) && (p) != NFS_PORT)
 
