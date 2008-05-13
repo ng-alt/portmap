@@ -99,13 +99,7 @@ static char sccsid[] = "@(#)portmap.c 1.32 87/08/06 Copyr 1984 Sun Micro";
 #include <stdlib.h>
 #include <pwd.h>
 
-#ifndef LOG_PERROR
-#define LOG_PERROR 0
-#endif
-
-#ifndef LOG_DAEMON
-#define LOG_DAEMON 0
-#endif
+#include "config.h"
 
 /* Older SYSV. */
 #if !defined(SIGCHLD) && defined(SIGCLD)
@@ -149,13 +143,9 @@ static int on = 1;
 #endif
 #endif
 
-#ifdef DAEMON_UID
 int daemon_uid = DAEMON_UID;
 int daemon_gid = DAEMON_GID;
-#else
-int daemon_uid = 1;
-int daemon_gid = 1;
-#endif
+const char* mapping_file = PORTMAP_MAPPING_FILE;
 
 /*
  * We record with each registration a flag telling whether it was
@@ -168,6 +158,37 @@ struct flagged_pml {
 	struct pmaplist pml;
 	int priv;
 };
+
+static inline int __getuid(const char* username)
+{
+	struct passwd* pw = getpwnam(username);
+
+	if (!pw)
+		return 0;
+
+	daemon_uid = pw->pw_uid;
+	daemon_gid = pw->pw_gid;
+	return 1;
+}
+
+static void usage(char *progname)
+{
+	fprintf(stderr,	"usage: %s [-dfFlv] [-t dir] [-i address] "
+			"[-u uid] [-g gid] [-U username] \n",
+		progname);
+	fprintf(stderr, "-v             verbose logging\n");
+	fprintf(stderr, "-d             debugging mode\n");
+	fprintf(stderr,	"-f             don't daemonize, log to standard error\n");
+	fprintf(stderr, "-F             don't daemonize, log as usual\n");
+	fprintf(stderr, "-t <dir>       chroot into dir\n");
+	fprintf(stderr, "-i <address>   bind to address\n");
+	fprintf(stderr, "-l             same as -i 127.0.0.1\n");
+	fprintf(stderr, "-u <uid>       run as this uid (default: %d)\n", DAEMON_UID);
+	fprintf(stderr, "-g <uid>       run as this gid (default: %d)\n", DAEMON_GID);
+	fprintf(stderr, "-U <username>  suid/sgid to this user\n");
+	fprintf(stderr, "-m <mapfile>   specify the mapping file name "
+					"(default: "PORTMAP_MAPPING_FILE")\n");
+}
 
 int
 main(int argc, char **argv)
@@ -184,13 +205,28 @@ main(int argc, char **argv)
 	int foreground = 0;
 	int have_uid = 0;
 
-	while ((c = getopt(argc, argv, "Vdflt:vi:u:g:")) != EOF) {
+	while ((c = getopt(argc, argv, "hVdfFlt:vi:u:U:g:m:")) != EOF) {
 		switch (c) {
 
 		case 'V':
-			printf("portmap version 6.0 - 2007-May-11\n");
+			printf("portmap version 6.0.0.1 - 2008-05-10\n");
 			exit(1);
 
+		case 'm':
+			mapping_file = optarg;
+			break;
+
+		case 'U':
+			/* try to fetch user-given uid/gid by name */
+			if (!__getuid(optarg))
+			{
+				fprintf(stderr,
+					"portmap: illegal username: \"%s\"\n",
+					optarg);
+				exit(1);
+			}
+			have_uid = 1;
+			break;
 		case 'u':
 			daemon_uid = atoi(optarg);
 			if (daemon_uid <= 0) {
@@ -214,6 +250,10 @@ main(int argc, char **argv)
 		case 'f':
 			foreground = 1;
 			break;
+		case 'F':
+			/* run in foreground, but still log as usual */
+			foreground = 2;
+			break;
 
 		case 't':
 			chroot_path = optarg;
@@ -229,20 +269,9 @@ main(int argc, char **argv)
 		case 'i':
 			have_bindaddr = inet_aton(optarg, &bindaddr);
 			break;
+		case 'h':
 		default:
-			fprintf(stderr,
-				"usage: %s [-dflv] [-t dir] [-i address] "
-				"[-u uid] [-g gid]\n",
-				argv[0]);
-			fprintf(stderr, "-d: debugging mode\n");
-			fprintf(stderr,
-				"-f: don't daemonize, log to standard error\n");
-			fprintf(stderr, "-t dir: chroot into dir\n");
-			fprintf(stderr, "-v: verbose logging\n");
-			fprintf(stderr, "-i address: bind to address\n");
-			fprintf(stderr, "-l: same as -i 127.0.0.1\n");
-			fprintf(stderr, "-u uid : setuid to this uid\n");
-			fprintf(stderr, "-g uid : setgid to this gid\n");
+			usage(argv[0]);
 			exit(1);
 		}
 	}
@@ -253,20 +282,17 @@ main(int argc, char **argv)
 	}
 
 #ifdef LOG_DAEMON
-	openlog("portmap", LOG_PID|LOG_NDELAY | ( foreground ? LOG_PERROR : 0),
-	    FACILITY);
+	openlog("portmap",
+		LOG_PID|LOG_NDELAY | ( (foreground==1) ? LOG_PERROR : 0),
+		FACILITY);
 #else
-	openlog("portmap", LOG_PID|LOG_NDELAY | ( foreground ? LOG_PERROR : 0));
+	openlog("portmap",
+		LOG_PID|LOG_NDELAY | ( (foreground==1) ? LOG_PERROR : 0));
 #endif
 
 #ifdef RPCUSER
 	if (!have_uid) {
-		struct passwd *pwent;
-		pwent = getpwnam(RPCUSER);
-		if (pwent) {
-			daemon_uid = pwent->pw_uid;
-			daemon_gid = pwent->pw_gid;
-		} else
+		if (!__getuid(RPCUSER))
 			syslog(LOG_WARNING, "user '" RPCUSER
 			       "' not found, reverting to default uid");
 	}
@@ -369,7 +395,7 @@ main(int argc, char **argv)
 
 	(void)svc_register(xprt, PMAPPROG, PMAPVERS, reg_service, FALSE);
 
-	store_fd = open("/var/run/portmap_mapping", O_RDWR|O_CREAT, 0600);
+	store_fd = open(mapping_file, O_RDWR|O_CREAT, PORTMAP_MAPPING_FMODE);
 	load_table();
 
 	/* additional initializations */

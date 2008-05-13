@@ -27,6 +27,38 @@ MAN_SED += -e 's/USE_DNS/yes/'
 endif
 endif
 
+ifeq ($(PREFIX),)
+PREFIX = /usr
+endif
+ifeq ($(SBINDIR),)
+SBINDIR = $(PREFIX)/sbin
+endif
+ifeq ($(DATADIR),)
+DATADIR = $(PREFIX)/share
+endif
+ifeq ($(MANDIR),)
+MANDIR = $(DATADIR)/man
+endif
+ifeq ($(MAN8DIR),)
+MAN8DIR = $(MANDIR)/man8
+endif
+
+## backwards compatibility to older distro builders
+ifeq ($(DESTDIR),)
+DESTDIR = $(BASEDIR)
+endif
+
+ifeq ($(INSTALL),)
+INSTALL = install
+endif
+ifeq ($(INSTALL_MAN),)
+INSTALL_MAN = $(INSTALL) -o root -g root -m 0644
+endif
+ifeq ($(INSTALL_BIN),)
+INSTALL_BIN = $(INSTALL) -s -o root -g root -m 0755
+endif
+
+
 # Comment out if your RPC library does not allocate privileged ports for
 # requests from processes with root privilege, or the new portmap will
 # always reject requests to register/unregister services on privileged
@@ -135,14 +167,27 @@ from_local: CPPFLAGS += -DTEST
 portmap.man : portmap.8
 	sed $(MAN_SED) < portmap.8 > portmap.man
 
-DESTDIR = $(BASEDIR)
-install: all
-	install -o root -g root -m 0755 portmap $(DESTDIR)/sbin
-	install -o root -g root -m 0755 pmap_dump $(DESTDIR)/sbin
-	install -o root -g root -m 0755 pmap_set $(DESTDIR)/sbin
-	install -o root -g root -m 0644 portmap.man $(DESTDIR)/usr/share/man/man8/portmap.8
-	install -o root -g root -m 0644 pmap_dump.8 $(DESTDIR)/usr/share/man/man8
-	install -o root -g root -m 0644 pmap_set.8 $(DESTDIR)/usr/share/man/man8
+install: all install-portmap install-pmap_dump install-pmap_set install-man
+
+install-dirs-sbin:
+	mkdir -p $(DESTDIR)$(SBINDIR)
+
+install-dirs-man:
+	mkdir -p $(DESTDIR)$(MAN8DIR)
+
+install-man:	install-dirs-man
+	$(INSTALL_MAN) portmap.man $(DESTDIR)$(MAN8DIR)/portmap.8
+	$(INSTALL_MAN) pmap_dump.8 $(DESTDIR)$(MAN8DIR)/pmap_dump.8
+	$(INSTALL_MAN) pmap_set.8  $(DESTDIR)$(MAN8DIR)/map_set.8
+
+install-pmap_dump:	pmap_dump	install-dirs-sbin
+	$(INSTALL_BIN)  pmap_dump	$(DESTDIR)$(SBINDIR)
+
+install-pmap_set:	pmap_set	install-dirs-sbin
+	$(INSTALL_BIN)	pmap_set	$(DESTDIR)$(SBINDIR)
+
+install-portmap:	portmap 	install-dirs-sbin
+	$(INSTALL_BIN)  portmap		$(DESTDIR)$(SBINDIR)
 
 clean:
 	rm -f *.o portmap pmap_dump pmap_set from_local \
