@@ -143,6 +143,7 @@ static int on = 1;
 #endif
 #endif
 
+int daemon_port = PMAPPORT;
 int daemon_uid = DAEMON_UID;
 int daemon_gid = DAEMON_GID;
 const char* mapping_file = PORTMAP_MAPPING_FILE;
@@ -185,6 +186,7 @@ static void usage(char *progname)
 	fprintf(stderr, "-l             same as -i 127.0.0.1\n");
 	fprintf(stderr, "-u <uid>       run as this uid (default: %d)\n", DAEMON_UID);
 	fprintf(stderr, "-g <uid>       run as this gid (default: %d)\n", DAEMON_GID);
+	fprintf(stderr, "-p <port>      run on nonstandard port (default: %d)\n", daemon_port);
 	fprintf(stderr, "-U <username>  suid/sgid to this user\n");
 	fprintf(stderr, "-m <mapfile>   specify the mapping file name "
 					"(default: "PORTMAP_MAPPING_FILE")\n");
@@ -205,7 +207,7 @@ main(int argc, char **argv)
 	int foreground = 0;
 	int have_uid = 0;
 
-	while ((c = getopt(argc, argv, "hVdfFlt:vi:u:U:g:m:")) != EOF) {
+	while ((c = getopt(argc, argv, "hVdfFlt:vi:u:U:g:m:p:")) != EOF) {
 		switch (c) {
 
 		case 'V':
@@ -269,6 +271,9 @@ main(int argc, char **argv)
 		case 'i':
 			have_bindaddr = inet_aton(optarg, &bindaddr);
 			break;
+		case 'p':
+			daemon_port = atoi(optarg);
+			break;
 		case 'h':
 		default:
 			usage(argv[0]);
@@ -309,7 +314,7 @@ main(int argc, char **argv)
 	memset((char *) &addr, 0, sizeof(addr));
 	addr.sin_addr.s_addr = 0;
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(PMAPPORT);
+	addr.sin_port = htons(daemon_port);
 	if (have_bindaddr)
 		memcpy(&addr.sin_addr, &bindaddr, sizeof(bindaddr));
 
@@ -330,7 +335,7 @@ main(int argc, char **argv)
 	pml->pml_map.pm_prog = PMAPPROG;
 	pml->pml_map.pm_vers = PMAPVERS;
 	pml->pml_map.pm_prot = IPPROTO_UDP;
-	pml->pml_map.pm_port = PMAPPORT;
+	pml->pml_map.pm_port = daemon_port;
 	pmaplist = pml;
 
 	if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
@@ -356,7 +361,7 @@ main(int argc, char **argv)
 	pml->pml_map.pm_prog = PMAPPROG;
 	pml->pml_map.pm_vers = PMAPVERS;
 	pml->pml_map.pm_prot = IPPROTO_TCP;
-	pml->pml_map.pm_port = PMAPPORT;
+	pml->pml_map.pm_port = daemon_port;
 	pml->pml_next = pmaplist;
 	pmaplist = pml;
 
@@ -876,7 +881,7 @@ static void load_table(void)
 		      &fpml.pml.pml_map.pm_prot,
 		      &fpml.pml.pml_map.pm_port,
 		      &fpml.priv) == 5) {
-		if (fpml.pml.pml_map.pm_port == PMAPPORT)
+		if (fpml.pml.pml_map.pm_port == daemon_port)
 			continue;
 		fpmlp = malloc(sizeof(struct flagged_pml));
 		if (!fpmlp)
