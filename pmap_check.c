@@ -116,7 +116,7 @@ void check_startup(void)
 static int
 good_client(struct sockaddr_in *addr)
 {
-	if (hosts_ctl("portmap", "", inet_ntoa(addr->sin_addr), ""))
+	if (hosts_ctl((char*)("portmap"), (char*)(""), inet_ntoa(addr->sin_addr), (char*)("")))
 		return 1;
 #ifdef ENABLE_DNS
 {
@@ -149,12 +149,12 @@ good_client(struct sockaddr_in *addr)
 		return 0;
 
 	/* Check the official name first. */
-	if (hosts_ctl("portmap", "", hp->h_name, ""))
+	if (hosts_ctl((char*)("portmap"), (char*)(""), hp->h_name, (char*)("")))
 		return 1;
 
 	/* Check aliases. */
 	for (sp = hp->h_aliases; *sp ; sp++) {
-		if (hosts_ctl("portmap", "", *sp, ""))
+		if (hosts_ctl((char*)("portmap"), (char*)(""), *sp, (char*)("")))
 			return 1;
 	}
 }
