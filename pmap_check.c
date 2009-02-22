@@ -63,7 +63,7 @@
 #define NFS_PORT	2049
 
 static void logit(int severity, struct sockaddr_in *addr,
-		  u_long procnum, u_long prognum, char *text);
+		  u_long procnum, u_long prognum, const char *text);
 static void toggle_verboselog(int sig);
 int     verboselog __attribute ((visibility ("hidden"))) = 0;
 int     allow_severity __attribute ((visibility ("hidden"))) = LOG_INFO;
@@ -275,16 +275,16 @@ static void toggle_verboselog(int sig)
 /* logit - report events of interest via the syslog daemon */
 
 static void logit(int severity, struct sockaddr_in *addr,
-		  u_long procnum, u_long prognum, char *text)
+		  u_long procnum, u_long prognum, const char *text)
 {
-    char   *procname;
+    const char *procname;
     char    procbuf[4 * sizeof(u_long)];
-    char   *progname;
+    const char *progname;
     char    progbuf[4 * sizeof(u_long)];
     struct rpcent *rpc;
     struct proc_map {
 	u_long  code;
-	char   *proc;
+	const char *proc;
     };
     struct proc_map *procp;
     static struct proc_map procmap[] = {
@@ -311,7 +311,8 @@ static void logit(int severity, struct sockaddr_in *addr,
 	} else if ((rpc = getrpcbynumber((int) prognum))) {
 	    progname = rpc->r_name;
 	} else {
-	    sprintf(progname = progbuf, "%lu", prognum);
+	    sprintf(progbuf, "%lu", prognum);
+	    progname = progbuf;
 	}
 
 	/* Try to map procedure number to name. */
@@ -319,7 +320,10 @@ static void logit(int severity, struct sockaddr_in *addr,
 	for (procp = procmap; procp->proc && procp->code != procnum; procp++)
 	     /* void */ ;
 	if ((procname = procp->proc) == 0)
-	    sprintf(procname = procbuf, "%lu", (u_long) procnum);
+	{
+	    sprintf(procbuf, "%lu", (u_long) procnum);
+	    procname = procbuf;
+	}
 
 	/* Write syslog record. */
 
