@@ -264,7 +264,7 @@ main(int argc, char **argv)
 			break;
 
 		case 'l':
-			optarg = "127.0.0.1";
+			optarg = (char*)"127.0.0.1";
 			/* FALL THROUGH */
 		case 'i':
 			have_bindaddr = inet_aton(optarg, &bindaddr);
