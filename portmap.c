@@ -422,12 +422,14 @@ main(int argc, char **argv)
 	abort();
 }
 
+#ifndef NO_PERROR
 /* need to override perror calls in rpc library */
 void perror(const char *what)
 {
 
 	syslog(LOG_ERR, "%s: %m", what);
 }
+#endif
 
 static struct pmaplist *
 find_service(u_long prog, u_long vers, u_long prot)

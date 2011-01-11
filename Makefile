@@ -32,6 +32,11 @@ ifneq ($(NO_FORK),)
 CPPFLAGS += -DNO_FORK
 endif
 
+# For static builds, we might hit perror() symbol clashes
+ifneq ($(NO_PERROR),)
+CPPFLAGS += -DNO_PERROR
+endif
+
 ifeq ($(PREFIX),)
 PREFIX = /usr
 endif
