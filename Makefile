@@ -138,6 +138,10 @@ CPPFLAGS += -DIGNORE_SIGCHLD	# AIX 4.x, HP-UX 9.x
 #
 # LDLIBS	+= -m
 # CFLAGS	+= -arch m68k -arch i386 -arch hppa
+ifeq ($(NO_PIE),)
+CFLAGS_PIE  = -fpie
+LDFLAGS_PIE = -pie
+endif
 
 # Auxiliary libraries that you may have to specify
 #
@@ -157,9 +161,9 @@ CFLAGS   += -Wall -Wstrict-prototypes
 all:	portmap pmap_dump pmap_set portmap.man
 
 CPPFLAGS += $(HOSTS_ACCESS)
-portmap: CFLAGS   += -fpie
+portmap: CFLAGS   += $(CFLAGS_PIE)
 portmap: LDLIBS   += $(WRAP_LIB)
-portmap: LDFLAGS  += -pie
+portmap: LDFLAGS  += $(LDFLAGS_PIE)
 portmap: portmap.o pmap_check.o from_local.o
 
 from_local: CPPFLAGS += -DTEST
