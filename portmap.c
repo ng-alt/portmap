@@ -784,6 +784,7 @@ static void callit(struct svc_req *rqstp, SVCXPRT *xprt)
 	if ((pml = find_service(a.rmt_prog, a.rmt_vers,
 	    (u_long)IPPROTO_UDP)) == NULL)
 		return;
+#ifndef NO_FORK
 	/*
 	 * fork a child to do the work.  Parent immediately returns.
 	 * Child exits upon completion.
@@ -794,6 +795,7 @@ static void callit(struct svc_req *rqstp, SVCXPRT *xprt)
 			    a.rmt_prog);
 		return;
 	}
+#endif
 	port = pml->pml_map.pm_port;
 	get_myaddress(&me);
 	me.sin_port = htons(port);
@@ -814,7 +816,9 @@ static void callit(struct svc_req *rqstp, SVCXPRT *xprt)
 		clnt_destroy(client);
 	}
 	(void)close(so);
+#ifndef NO_FORK
 	exit(0);
+#endif
 }
 
 #ifndef IGNORE_SIGCHLD			/* Lionel Cons <cons@dxcern.cern.ch> */

@@ -18,6 +18,7 @@ There is no "./configure", just use "make".
 
 Some make variable can be used to control compilation.
 
+ NO_FORK=	  if non-empty, don't use fork (good for nommu systems)
  NO_PIE=	  if non-empty, don't build portmap as a PIE
  NO_TCP_WRAPPER=  if non-empty, don't use tcp_wrappers
  USE_DNS=	  if set, tcp_wrappers can check peers based on hostname

@@ -302,8 +302,10 @@ static void logit(int severity, struct sockaddr_in *addr,
      * getrpcbynumber() or syslog() does its thing.
      */
 
-    if (fork() == 0) {
-
+#ifndef NO_FORK
+    if (fork() == 0)
+#endif
+    {
 	/* Try to map program number to name. */
 
 	if (prognum == 0) {

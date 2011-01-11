@@ -27,6 +27,11 @@ MAN_SED += -e 's/USE_DNS/yes/'
 endif
 endif
 
+# For no-mmu systems, we have to disable the fork() functions.
+ifneq ($(NO_FORK),)
+CPPFLAGS += -DNO_FORK
+endif
+
 ifeq ($(PREFIX),)
 PREFIX = /usr
 endif
