@@ -871,7 +871,7 @@ static void load_table(void)
 	struct flagged_pml fpml, *fpmlp;
 
 	ep = &pmaplist;
-	while ((*ep)->pml_next)
+	while (*ep)
 		ep = & (*ep)->pml_next;
 
 	if (store_fd < 0)
