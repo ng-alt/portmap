@@ -568,17 +568,14 @@ static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt)
 				if (!check_privileged_port(svc_getcaller(xprt), 
 				    rqstp->rq_proc, 
 				    reg.pm_prog, 
-				    pml->pml_map.pm_port)) {
-					ans = 0;
-					break;
-				}
+				    pml->pml_map.pm_port))
+					continue;
+
 				fpml = (struct flagged_pml*)pml;
 				if (fpml->priv &&
 				    (ntohs(svc_getcaller(xprt)->sin_port)
-				     >= IPPORT_RESERVED)) {
-					ans = 0;
-					break;
-				}
+				     >= IPPORT_RESERVED))
+					continue;
 
 				ans = 1;
 				t = (caddr_t)pml;
